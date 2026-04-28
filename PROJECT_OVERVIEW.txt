@@ -1,0 +1,85 @@
+PaperMind - RAG Chatbot Overview
+
+PaperMind is an intelligent chatbot that answers questions about Generative AI
+research papers. It indexes PDFs into a vector database, retrieves relevant
+passages based on your question, and uses OpenAI GPT to generate a grounded answer
+with source citations.
+
+
+PROJECT STRUCTURE
+
+PaperMind/
+    Dataset/                      - research papers 
+    src/
+        document_processor.py     - PDF loading and text chunking
+        vector_store.py           - ChromaDB vector database management
+        retriever.py              - Retrieval strategies (3 options)
+        chatbot.py                - RAG chain with conversation history
+    config.py                     - All tuneable settings in one place
+    ingest.py                     - One-time script to index the papers
+    app.py                        - Streamlit chatbot web interface
+    requirements.txt              - Python dependencies
+    .env.example                  - Template for your API key
+
+
+HOW IT WORKS
+1. Ingestion (run once)
+   - Load each PDF page by page
+   - Split pages into overlapping 1000-character chunks (200-char overlap)
+   - Embed each chunk using BAAI/bge-large-en-v1.5 (runs locally, free)
+   - Store embeddings in ChromaDB on disk
+
+2. At query time
+   - If the question is a follow-up, rephrase it into a standalone question
+     so retrieval is accurate regardless of conversation history
+   - Search the vector database for the most relevant chunks
+   - Inject retrieved chunks into GPT's prompt as context
+   - GPT generates a grounded answer citing specific papers
+
+
+RETRIEVAL STRATEGIES
+Three strategies are available and switchable from the UI:
+
+MMR - Maximal Marginal Relevance (default)
+    Fetches extra candidates then selects the most relevant AND diverse set.
+    Best for broad questions where you want varied coverage.
+
+Semantic Similarity
+    Pure vector cosine similarity. Fast and straightforward.
+    Best for focused, conceptual questions.
+
+Hybrid - BM25 + Semantic
+    Combines keyword matching (BM25) with semantic search using
+    Reciprocal Rank Fusion. Best for short, term-heavy queries.
+
+
+PAPERS INDEXED
+- Attention Is All You Need         (Transformer architecture)
+- GPT-4 Technical Report
+- InstructGPT                       (RLHF / alignment)
+- Gemini: A Family of Highly Capable Multimodal Models
+- Mistral 7B
+
+
+TECH STACK
+- LangChain          - RAG orchestration framework
+- ChromaDB           - Local persistent vector database
+- BAAI/bge-large     - Embedding model (runs on CPU)
+- OpenAI GPT-4o       - Language model for answer generation
+- Streamlit          - Web UI
+
+
+QUICK START
+Step 1 - Install dependencies
+    pip install -r requirements.txt
+
+Step 2 - Add your OpenAI API key
+
+Step 3 - Index the papers (only needs to be done once)
+    python ingest.py
+
+Step 4 - Launch the chatbot
+    streamlit run app.py
+
+To re-index after adding new papers:
+    python ingest.py --force

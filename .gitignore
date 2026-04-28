@@ -1,0 +1,16 @@
+# Distribution / packaging
+.Python
+build/
+dist/
+downloads/
+
+# Environments
+.env
+.venv
+env/
+venv/
+
+
+# Large data files
+*.pdf
+vector_store/
